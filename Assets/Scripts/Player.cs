@@ -9,8 +9,40 @@ public class Player : MonoBehaviour
     [SerializeField] private GameInput _gameInput;
     
     private bool _isWalking;
+    private Vector3 _lastInteractDir;
 
     private void Update()
+    {
+        HandleMovement();
+        HandleInteractions();
+    }
+
+    public bool IsWalking()
+    {
+        return _isWalking;
+    }
+
+    private void HandleInteractions()
+    {
+        Vector2 inputVector = _gameInput.GetMovementVectorNormalized();
+
+        Vector3 moveDir = new(inputVector.x, 0f, inputVector.y);
+
+        if (moveDir != Vector3.zero)
+            _lastInteractDir = moveDir;
+
+        float interactDistance = 2f;
+        if (Physics.Raycast(transform.position, _lastInteractDir, out RaycastHit raycastHit, interactDistance)) 
+        {
+            Debug.Log(raycastHit.transform);
+        } 
+        else 
+        {
+            Debug.Log("-");
+        }
+    }
+
+    private void HandleMovement()
     {
         Vector2 inputVector = _gameInput.GetMovementVectorNormalized();
 
@@ -29,7 +61,8 @@ public class Player : MonoBehaviour
             if (canMove)
             {
                 moveDir = moveDirX;
-            } else
+            }
+            else
             {
                 Vector3 moveDirZ = new Vector3(0f, 0f, moveDir.z).normalized;
                 canMove = !Physics.CapsuleCast(transform.position, transform.position + Vector3.up * playerHeight, playerRadius, moveDirZ, moveDistance);
@@ -37,7 +70,8 @@ public class Player : MonoBehaviour
                 if (canMove)
                 {
                     moveDir = moveDirZ;
-                } else
+                }
+                else
                 {
                     // Can not move in any direction
                 }
@@ -50,10 +84,5 @@ public class Player : MonoBehaviour
         _isWalking = moveDir != Vector3.zero;
 
         transform.forward = Vector3.Slerp(transform.forward, moveDir, Time.deltaTime * _rotationSpeed);
-    }
-
-    public bool IsWalking()
-    {
-        return _isWalking;
     }
 }
